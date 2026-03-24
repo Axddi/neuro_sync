@@ -1,20 +1,19 @@
-variable "function_name" {
-  type = string
+variable "environment" {
+  type        = string
+  description = "Environment name"
 }
 
-variable "role_arn" {
-  type = string
+variable "lambda_zip_path" {
+  type        = string
+  description = "Path to Lambda deployment package"
 }
 
-variable "handler" {
-  type = string
+variable "dynamodb_table_name" {
+  type        = string
+  description = "DynamoDB table name"
 }
 
-variable "filename" {
-  type = string
-}
-
-variable "environment_variables" {
-  type = map(string)
-  default = {}
+variable "sns_topic_arn" {
+  type        = string
+  description = "SNS topic ARN"
 }

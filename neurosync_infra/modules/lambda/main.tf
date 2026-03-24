@@ -1,15 +1,50 @@
-resource "aws_lambda_function" "this" {
-  function_name = var.function_name
-  role          = var.role_arn
-  handler       = var.handler
-  runtime       = "nodejs18.x"
+resource "aws_iam_role" "lambda_role" {
+  name = "neurosync-dev-lambda-role"
 
-  filename         = var.filename
-  source_code_hash = filebase64sha256(var.filename)
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+    }]
+  })
 
-  timeout = 10
+  tags = {
+    Name        = "neurosync-dev-lambda-role"
+    Environment = var.environment
+    Project     = "neurosync"
+  }
+}
+
+# Attach basic execution policy
+resource "aws_iam_role_policy_attachment" "lambda_basic" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+# Lambda function
+resource "aws_lambda_function" "neurosync_lambda" {
+  function_name = "neurosync-dev-lambda"
+  role          = aws_iam_role.lambda_role.arn
+
+  runtime = "nodejs18.x"
+  handler = "index.handler"
+
+  filename = var.lambda_zip_path
 
   environment {
-    variables = var.environment_variables
+    variables = {
+      DYNAMODB_TABLE = var.dynamodb_table_name
+      SNS_TOPIC_ARN  = var.sns_topic_arn
+    }
+  }
+
+  tags = {
+    Name        = "neurosync-dev-lambda"
+    Environment = var.environment
+    Project     = "neurosync"
   }
 }
