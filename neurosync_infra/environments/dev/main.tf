@@ -27,3 +27,14 @@ module "cognito" {
   project_name = var.project_name
   environment  = var.environment
 }
+
+module "lambda" {
+  source = "../../modules/lambda"
+
+  environment = var.environment
+
+  lambda_zip_path = "../../lambda_code/lambda.zip"
+
+  dynamodb_table_name = module.dynamodb.table_name
+  sns_topic_arn       = module.sns.sns_topic_arn
+}
