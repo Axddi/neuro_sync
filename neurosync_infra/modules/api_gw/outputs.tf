@@ -1,3 +1,3 @@
-output "api_endpoint" {
-  value = aws_apigatewayv2_api.neurosync_api.api_endpoint
+output "api_url" {
+  value = "${aws_apigatewayv2_api.api.api_endpoint}/${var.environment}/neurosync-dev-lambda"
 }
