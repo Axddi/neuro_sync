@@ -35,6 +35,6 @@ module "lambda" {
 
   lambda_zip_path = "../../lambda_code/lambda.zip"
 
-  dynamodb_table_name = module.dynamodb.table_name
+  dynamodb_table_name = module.dynamodb.dynamodb_table_name
   sns_topic_arn       = module.sns.sns_topic_arn
 }
