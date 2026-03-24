@@ -1,23 +1,11 @@
-output "dynamodb_table_name" {
-  value = module.dynamodb.dynamodb_table_name
+output "api_endpoint" {
+  value = module.api.api_endpoint
 }
 
-output "s3_bucket_name" {
-  value = module.s3.bucket_name
+output "lambda_name" {
+  value = module.lambda_logs.lambda_name
 }
 
-output "sns_topic_arn" {
-  value = module.sns.sns_topic_arn
-}
-
-output "cognito_user_pool_id" {
-  value = module.cognito.user_pool_id
-}
-
-output "lambda_function_name" {
-  value = module.lambda.lambda_function_name
-}
-
-output "api_url" {
-  value = module.api_gw.api_url
+output "dynamodb_table" {
+  value = module.dynamodb.table_name
 }

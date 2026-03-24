@@ -1,10 +1,25 @@
-# Terraform files
+# Terraform
 .terraform/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
 
-# Optional
+# Terraform secrets
+*.tfvars
+*.tfvars.json
+
+# Lambda
+lambda_code/node_modules/
+lambda_code/*.zip
+
+# Logs
+*.log
 crash.log
+
+# Override files
 override.tf
 override.tf.json
+
+# OS
+.DS_Store
+Thumbs.db

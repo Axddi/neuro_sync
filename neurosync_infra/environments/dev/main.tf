@@ -1,50 +1,37 @@
+# IAM
+module "iam" {
+  source = "../../modules/iam"
+}
+
+# DynamoDB ✅ (YOU WERE MISSING THIS)
 module "dynamodb" {
-  source = "../../modules/dynamodb"
-
-  project_name  = var.project_name
-  environment   = var.environment
-  hash_key      = var.dynamodb_hash_key
-  hash_key_type = var.dynamodb_hash_key_type
+  source     = "../../modules/dynamodb"
+  table_name = "neurosync-dev-table"
 }
 
-module "s3" {
-  source = "../../modules/s3"
+# Lambda
+module "lambda_logs" {
+  source        = "../../modules/lambda"
+  function_name = "neurosync-dev-lambda"
+  role_arn      = module.iam.lambda_role_arn
+  handler       = "index.handler"
+  filename      = "../../lambda_code/lambda.zip"
 
-  project_name = var.project_name
-  environment  = var.environment
+  environment_variables = {
+    TABLE_NAME = module.dynamodb.table_name
+  }
 }
 
-module "sns" {
-  source = "../../modules/sns"
-
-  project_name = var.project_name
-  environment  = var.environment
+# API Gateway
+module "api" {
+  source             = "../../modules/api_gateway"
+  lambda_invoke_arn  = module.lambda_logs.lambda_invoke_arn
+  lambda_name        = module.lambda_logs.lambda_name
 }
 
-module "cognito" {
-  source = "../../modules/cognito"
-
-  project_name = var.project_name
-  environment  = var.environment
-}
-
-module "lambda" {
-  source = "../../modules/lambda"
-
-  environment = var.environment
-
-  lambda_zip_path = "../../lambda_code/lambda.zip"
-
-  dynamodb_table_name = module.dynamodb.dynamodb_table_name
-  sns_topic_arn       = module.sns.sns_topic_arn
-}
-
-module "api_gw" {
-  source = "../../modules/api_gw"
-
-  project_name = var.project_name
-  environment  = var.environment
-
-  lambda_function_name = module.lambda.lambda_function_name
-  lambda_invoke_arn    = module.lambda.lambda_invoke_arn
+# EventBridge
+module "eventbridge" {
+  source      = "../../modules/eventbridge"
+  lambda_arn  = module.lambda_logs.lambda_arn
+  lambda_name = module.lambda_logs.lambda_name
 }
