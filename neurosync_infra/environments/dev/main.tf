@@ -25,8 +25,11 @@ module "lambda_logs" {
 # API Gateway
 module "api" {
   source             = "../../modules/api_gateway"
-  lambda_invoke_arn  = module.lambda_logs.lambda_invoke_arn
-  lambda_name        = module.lambda_logs.lambda_name
+  lambda_name       = module.lambda_logs.lambda_name
+  lambda_invoke_arn = module.lambda_logs.lambda_invoke_arn
+
+  user_pool_id = module.cognito.user_pool_id
+  client_id    = module.cognito.client_id
 }
 
 # EventBridge
@@ -34,4 +37,10 @@ module "eventbridge" {
   source      = "../../modules/eventbridge"
   lambda_arn  = module.lambda_logs.lambda_arn
   lambda_name = module.lambda_logs.lambda_name
+}
+
+module "cognito" {
+  source = "../../modules/cognito"
+  project_name = var.project_name
+  environment  = var.environment
 }
