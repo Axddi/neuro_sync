@@ -1,9 +1,15 @@
-resource "aws_sns_topic" "neurosync_dev_topic" {
-  name = "${var.project_name}-${var.environment}-topic"
+resource "aws_sns_topic" "this" {
+  name = var.topic_name
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-sns"
-    Project     = var.project_name
-    Environment = var.environment
+    Name        = var.topic_name
+    Environment = "dev"
+    Project     = "neurosync"
   }
+}
+
+resource "aws_sns_topic_subscription" "email_subscription" {
+  topic_arn = aws_sns_topic.this.arn
+  protocol  = "email"
+  endpoint  = var.email
 }

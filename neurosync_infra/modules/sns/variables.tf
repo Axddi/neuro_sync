@@ -1,9 +1,9 @@
-variable "project_name" {
-  description = "Project name"
+variable "topic_name" {
+  description = "SNS topic name"
   type        = string
 }
 
-variable "environment" {
-  description = "Environment (dev, prod)"
+variable "email" {
+  description = "Email for SNS subscription"
   type        = string
 }
