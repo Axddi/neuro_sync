@@ -19,5 +19,5 @@ output "lambda_function_name" {
 }
 
 output "api_url" {
-  value = module.api_gw.api_endpoint
+  value = module.api_gw.api_url
 }
