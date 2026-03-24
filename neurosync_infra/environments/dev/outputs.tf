@@ -17,3 +17,7 @@ output "cognito_user_pool_id" {
 output "lambda_function_name" {
   value = module.lambda.lambda_function_name
 }
+
+output "api_url" {
+  value = module.api_gw.api_endpoint
+}

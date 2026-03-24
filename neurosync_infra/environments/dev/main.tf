@@ -38,3 +38,13 @@ module "lambda" {
   dynamodb_table_name = module.dynamodb.dynamodb_table_name
   sns_topic_arn       = module.sns.sns_topic_arn
 }
+
+module "api_gw" {
+  source = "../../modules/api_gw"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+  lambda_function_name = module.lambda.lambda_function_name
+  lambda_invoke_arn    = module.lambda.lambda_invoke_arn
+}
