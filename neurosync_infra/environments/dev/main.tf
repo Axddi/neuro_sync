@@ -1,26 +1,29 @@
-module "iam" {
-  source = "../../modules/iam"
+module "dynamodb" {
+  source = "../../modules/dynamodb"
+
+  project_name  = var.project_name
+  environment   = var.environment
+  hash_key      = var.dynamodb_hash_key
+  hash_key_type = var.dynamodb_hash_key_type
 }
 
-module "lambda_logs" {
-  source        = "../../modules/lambda"
-  function_name = "neurosync-dev-logs"
-  role_arn      = module.iam.lambda_role_arn
-  handler       = "index.handler"
-  filename      = "../../artifacts/logs.zip"
+module "s3" {
+  source = "../../modules/s3"
 
-  environment_variables = {
-    TABLE_NAME = "neurosync-dev"
-  }
+  project_name = var.project_name
+  environment  = var.environment
 }
 
-module "api" {
-  source     = "../../modules/api_gateway"
-  lambda_arn = module.lambda_logs.lambda_arn
+module "sns" {
+  source = "../../modules/sns"
+
+  project_name = var.project_name
+  environment  = var.environment
 }
 
-module "eventbridge" {
-  source      = "../../modules/eventbridge"
-  lambda_arn  = module.lambda_logs.lambda_arn
-  lambda_name = module.lambda_logs.lambda_name
+module "cognito" {
+  source = "../../modules/cognito"
+
+  project_name = var.project_name
+  environment  = var.environment
 }
