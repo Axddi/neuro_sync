@@ -14,6 +14,26 @@ resource "aws_iam_role" "lambda_role" {
     ]
   })
 }
+resource "aws_iam_role_policy" "lambda_dynamodb" {
+  name = "lambda-dynamodb-policy"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:Query",
+          "dynamodb:Scan"
+        ]
+        Resource = var.dynamodb_table_arn
+      }
+    ]
+  })
+}
 
 resource "aws_iam_role_policy_attachment" "lambda_basic" {
   role       = aws_iam_role.lambda_role.name

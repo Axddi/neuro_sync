@@ -22,3 +22,18 @@ resource "aws_cognito_user_pool_client" "this" {
 
   generate_secret = false
 }
+resource "aws_cognito_user_group" "caregiver" {
+  name         = "caregiver"
+  user_pool_id = aws_cognito_user_pool.this.id
+}
+
+resource "aws_cognito_user_group" "doctor" {
+  name         = "doctor"
+  user_pool_id = aws_cognito_user_pool.this.id
+}
+
+resource "aws_cognito_user_in_group" "admin_caregiver" {
+  user_pool_id = aws_cognito_user_pool.this.id
+  username     = "admin" 
+  group_name   = aws_cognito_user_group.caregiver.name
+}

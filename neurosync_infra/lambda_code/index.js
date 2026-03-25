@@ -1,35 +1,67 @@
 const AWS = require("aws-sdk");
+
 const dynamo = new AWS.DynamoDB.DocumentClient();
 const sns = new AWS.SNS();
 
 const TABLE_NAME = process.env.TABLE_NAME;
+const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN;
 
 exports.handler = async (event) => {
   try {
-    console.log("FULL EVENT:", JSON.stringify(event));
+    console.log("EVENT:", JSON.stringify(event));
 
-    const method = event.requestContext.http.method;
-    let path = event.rawPath;
+    const method = event?.requestContext?.http?.method || "";
+    let path = event?.requestContext?.http?.path || "";
+    path = path.replace(/^\/[a-zA-Z0-9_-]+/, "");
 
-    // 🔥 Normalize path
-    path = path.replace(/^\/dev/, "");
+    const claims = event?.requestContext?.authorizer?.jwt?.claims || {};
+    console.log("CLAIMS:", JSON.stringify(claims));
 
-    const user =
-      event.requestContext?.authorizer?.jwt?.claims?.sub || "anonymous";
+    let groups =
+      claims["cognito:groups"] ||
+      claims["groups"] ||
+      [];
+
+    if (typeof groups === "string") {
+      groups = [groups];
+    }
+
+    console.log("GROUPS:", groups);
+
+    const user = claims.sub || "anonymous";
 
     let body = {};
     if (event.body) {
       try {
         body = JSON.parse(event.body);
-      } catch (e) {
+      } catch {
         return response(400, { error: "Invalid JSON body" });
       }
     }
 
-    // ============================
-    // CREATE PATIENT
-    // ============================
+    if (method === "GET" && path === "/") {
+      return response(200, {
+        message: "NeuroSync API running 🚀",
+        user,
+        groups,
+      });
+    }
+
     if (method === "POST" && path === "/patients") {
+      let groups =
+      claims["cognito:groups"] ||
+      claims["groups"] ||
+      [];
+    
+    if (typeof groups === "string") {
+      groups = groups.replace(/[\[\]\s]/g, "").split(",");
+    }
+    
+    console.log("CLEAN GROUPS:", groups);
+      if (!body.id || !body.name) {
+        return response(400, { error: "id and name required" });
+      }
+
       const item = {
         PK: `PATIENT#${body.id}`,
         SK: "META",
@@ -46,39 +78,56 @@ exports.handler = async (event) => {
       return response(200, item);
     }
 
-    // ============================
-    // SEND REMINDER (SNS 🔥)
-    // ============================
+    if (method === "GET" && path === "/patients") {
+      const data = await dynamo.scan({
+        TableName: TABLE_NAME,
+      }).promise();
+
+      return response(200, {
+        count: data.Items.length,
+        patients: data.Items,
+      });
+    }
+
     if (method === "POST" && path === "/reminder") {
+      if (!groups.includes("caregiver")) {
+        return response(403, {
+          error: "Only caregivers can send reminders",
+        });
+      }
+
+      if (!SNS_TOPIC_ARN) {
+        return response(500, { error: "SNS_TOPIC_ARN missing" });
+      }
+
       await sns.publish({
-        TopicArn: process.env.SNS_TOPIC_ARN,
-        Message: `Reminder for user ${user}: Take medication 💊`,
+        TopicArn: SNS_TOPIC_ARN,
+        Message: `Reminder from NeuroSync for user ${user} 💊`,
       }).promise();
 
       return response(200, { message: "Reminder sent 🚀" });
     }
 
-    // ============================
-    // HEALTH CHECK
-    // ============================
-    if (method === "GET" && path === "/") {
-      return response(200, {
-        message: "NeuroSync API running 🚀",
-      });
-    }
+    return response(404, {
+      message: "Route not found",
+      method,
+      path,
+    });
 
-    return response(404, { message: "Route not found", method, path });
-
-  } catch (error) {
-    console.error(error);
-    return response(500, { error: error.message });
+  } catch (err) {
+    console.error("ERROR:", err);
+    return response(500, {
+      error: err.message,
+    });
   }
 };
 
 function response(status, body) {
   return {
     statusCode: status,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(body),
   };
 }

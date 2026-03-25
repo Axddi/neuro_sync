@@ -1,6 +1,8 @@
 # IAM
 module "iam" {
   source = "../../modules/iam"
+
+  dynamodb_table_arn = module.dynamodb.table_arn
 }
 
 # DynamoDB
