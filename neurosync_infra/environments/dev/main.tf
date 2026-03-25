@@ -25,26 +25,30 @@ module "cognito" {
   environment  = var.environment
 }
 
-# Lambda
 module "lambda" {
   source = "../../modules/lambda"
 
-  environment = var.environment
-  lambda_zip_path = "../../lambda_code/lambda.zip"
+  function_name = "neurosync-dev-lambda"
+  role_arn      = module.iam.lambda_role_arn
+  handler       = "index.handler"
+  filename      = "../../lambda_code/lambda.zip"
 
-  dynamodb_table_name = module.dynamodb.table_name
-  sns_topic_arn       = module.sns.sns_topic_arn
+  sns_topic_arn = module.sns.sns_topic_arn
+
+  environment_variables = {
+    TABLE_NAME    = module.dynamodb.table_name
+    SNS_TOPIC_ARN = module.sns.sns_topic_arn
+  }
 }
 
-# API Gateway
 module "api_gw" {
-  source = "../../modules/api_gw"
+  source = "../../modules/api_gateway"
 
-  project_name = var.project_name
-  environment  = var.environment
+  lambda_name       = module.lambda.lambda_name
+  lambda_invoke_arn = module.lambda.lambda_invoke_arn
 
-  lambda_function_name = module.lambda.lambda_function_name
-  lambda_invoke_arn    = module.lambda.lambda_invoke_arn
+  user_pool_id = module.cognito.user_pool_id
+  client_id    = module.cognito.client_id
 }
 
 # EventBridge
@@ -52,5 +56,5 @@ module "eventbridge" {
   source = "../../modules/eventbridge"
 
   lambda_arn  = module.lambda.lambda_arn
-  lambda_name = module.lambda.lambda_function_name
+lambda_name = module.lambda.lambda_name 
 }
