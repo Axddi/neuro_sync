@@ -17,3 +17,7 @@ variable "dynamodb_hash_key_type" {
   description = "DynamoDB key type"
   type        = string
 }
+
+variable "sns_topic_arn" {
+  type = string
+}
