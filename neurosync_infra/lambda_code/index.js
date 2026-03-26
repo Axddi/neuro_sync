@@ -1,4 +1,3 @@
-
 const AWS = require("aws-sdk");
 
 const dynamo = new AWS.DynamoDB.DocumentClient();
@@ -6,20 +5,6 @@ const sns = new AWS.SNS();
 
 const TABLE_NAME = process.env.TABLE_NAME;
 const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN;
-if (method === "POST" && path === "/auth/login") {
-  const { email, password } = body;
-
-  if (!email || !password) {
-    return response(400, { error: "Email and password required" });
-  }
-  return response(200, {
-    token: "dummy-token",
-    user: {
-      email,
-      role: "caregiver",
-    },
-  });
-}
 
 exports.handler = async (event) => {
   try {
@@ -29,8 +14,8 @@ exports.handler = async (event) => {
     let path = event?.requestContext?.http?.path || "";
     path = path.replace(/^\/[a-zA-Z0-9_-]+/, "");
 
+    console.log("METHOD:", method, "PATH:", path);
     const claims = event?.requestContext?.authorizer?.jwt?.claims || {};
-    console.log("CLAIMS:", JSON.stringify(claims));
 
     let groups =
       claims["cognito:groups"] ||
@@ -41,16 +26,35 @@ exports.handler = async (event) => {
       groups = [groups];
     }
 
-    console.log("GROUPS:", groups);
-
     const user = claims.sub || "anonymous";
-
     let body = {};
     if (event.body) {
       try {
         body = JSON.parse(event.body);
       } catch {
         return response(400, { error: "Invalid JSON body" });
+      }
+    }
+
+    if (method === "POST" && path === "/auth/login") {
+      try {
+        const { email, password } = body;
+
+        if (!email || !password) {
+          return response(400, { error: "Email and password required" });
+        }
+
+        return response(200, {
+          token: "dummy-token",
+          user: {
+            email,
+            role: "caregiver",
+          },
+        });
+
+      } catch (err) {
+        console.error("LOGIN ERROR:", err);
+        return response(500, { error: "Login failed" });
       }
     }
 
@@ -63,16 +67,6 @@ exports.handler = async (event) => {
     }
 
     if (method === "POST" && path === "/patients") {
-      let groups =
-      claims["cognito:groups"] ||
-      claims["groups"] ||
-      [];
-    
-    if (typeof groups === "string") {
-      groups = groups.replace(/[\[\]\s]/g, "").split(",");
-    }
-    
-    console.log("CLEAN GROUPS:", groups);
       if (!body.id || !body.name) {
         return response(400, { error: "id and name required" });
       }
@@ -144,6 +138,7 @@ function response(status, body) {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers": "*",
+      "Access-Control-Allow-Methods": "*",
     },
     body: JSON.stringify(body),
   };
