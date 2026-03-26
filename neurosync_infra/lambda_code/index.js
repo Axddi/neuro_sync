@@ -1,3 +1,4 @@
+
 const AWS = require("aws-sdk");
 
 const dynamo = new AWS.DynamoDB.DocumentClient();
@@ -5,6 +6,20 @@ const sns = new AWS.SNS();
 
 const TABLE_NAME = process.env.TABLE_NAME;
 const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN;
+if (method === "POST" && path === "/auth/login") {
+  const { email, password } = body;
+
+  if (!email || !password) {
+    return response(400, { error: "Email and password required" });
+  }
+  return response(200, {
+    token: "dummy-token",
+    user: {
+      email,
+      role: "caregiver",
+    },
+  });
+}
 
 exports.handler = async (event) => {
   try {
@@ -127,6 +142,8 @@ function response(status, body) {
     statusCode: status,
     headers: {
       "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "*",
     },
     body: JSON.stringify(body),
   };

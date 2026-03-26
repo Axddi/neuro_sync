@@ -45,6 +45,22 @@ resource "aws_lambda_permission" "api_gw" {
   action        = "lambda:InvokeFunction"
   function_name = var.lambda_name
   principal     = "apigateway.amazonaws.com"
-
   source_arn = "${aws_apigatewayv2_api.api.execution_arn}/*/*"
+}
+resource "aws_apigatewayv2_route" "login_public" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "POST /auth/login"
+
+  target = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+
+  authorization_type = "NONE"
+}
+
+resource "aws_apigatewayv2_route" "signup_public" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "POST /auth/signup"
+
+  target = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+
+  authorization_type = "NONE"
 }
