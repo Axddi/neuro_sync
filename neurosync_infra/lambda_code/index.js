@@ -7,6 +7,17 @@ const TABLE_NAME = process.env.TABLE_NAME;
 const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN;
 
 exports.handler = async (event) => {
+  if (event.requestContext.http.method === "OPTIONS") {
+  return {
+    statusCode: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "*",
+      "Access-Control-Allow-Methods": "*",
+    },
+    body: "",
+  };
+}
   try {
     console.log("EVENT:", JSON.stringify(event));
 
