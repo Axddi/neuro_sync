@@ -2,10 +2,11 @@ resource "aws_apigatewayv2_api" "api" {
   name          = "neurosync-dev-api"
   protocol_type = "HTTP"
   cors_configuration {
-    allow_origins = ["*"]
-    allow_methods = ["GET", "POST", "OPTIONS"]
-    allow_headers = ["*"]
-  }
+  allow_origins = ["*"]
+  allow_methods = ["GET", "POST", "OPTIONS"]
+  allow_headers = ["Content-Type", "Authorization"]
+  allow_credentials = false
+}
 }
 
 resource "aws_apigatewayv2_integration" "lambda_integration" {
@@ -66,11 +67,5 @@ resource "aws_apigatewayv2_route" "signup_public" {
 
   target = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 
-  authorization_type = "NONE"
-}
-resource "aws_apigatewayv2_route" "options" {
-  api_id    = aws_apigatewayv2_api.api.id
-  route_key = "OPTIONS /{proxy+}"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
   authorization_type = "NONE"
 }

@@ -8,24 +8,19 @@ const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN;
 
 exports.handler = async (event) => {
   if (event.requestContext.http.method === "OPTIONS") {
-  return {
-    statusCode: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "*",
-      "Access-Control-Allow-Methods": "*",
-    },
-    body: "",
-  };
-}
+    return corsResponse(200, {});
+  }
+
   try {
     console.log("EVENT:", JSON.stringify(event));
 
     const method = event?.requestContext?.http?.method || "";
     let path = event?.requestContext?.http?.path || "";
+
     path = path.replace(/^\/[a-zA-Z0-9_-]+/, "");
 
     console.log("METHOD:", method, "PATH:", path);
+
     const claims = event?.requestContext?.authorizer?.jwt?.claims || {};
 
     let groups =
@@ -38,39 +33,34 @@ exports.handler = async (event) => {
     }
 
     const user = claims.sub || "anonymous";
+
     let body = {};
     if (event.body) {
       try {
         body = JSON.parse(event.body);
       } catch {
-        return response(400, { error: "Invalid JSON body" });
+        return corsResponse(400, { error: "Invalid JSON body" });
       }
     }
 
     if (method === "POST" && path === "/auth/login") {
-      try {
-        const { email, password } = body;
+      const { email, password } = body;
 
-        if (!email || !password) {
-          return response(400, { error: "Email and password required" });
-        }
-
-        return response(200, {
-          token: "dummy-token",
-          user: {
-            email,
-            role: "caregiver",
-          },
-        });
-
-      } catch (err) {
-        console.error("LOGIN ERROR:", err);
-        return response(500, { error: "Login failed" });
+      if (!email || !password) {
+        return corsResponse(400, { error: "Email and password required" });
       }
+
+      return corsResponse(200, {
+        token: "dummy-token",
+        user: {
+          email,
+          role: "caregiver",
+        },
+      });
     }
 
     if (method === "GET" && path === "/") {
-      return response(200, {
+      return corsResponse(200, {
         message: "NeuroSync API running 🚀",
         user,
         groups,
@@ -79,7 +69,7 @@ exports.handler = async (event) => {
 
     if (method === "POST" && path === "/patients") {
       if (!body.id || !body.name) {
-        return response(400, { error: "id and name required" });
+        return corsResponse(400, { error: "id and name required" });
       }
 
       const item = {
@@ -95,7 +85,7 @@ exports.handler = async (event) => {
         Item: item,
       }).promise();
 
-      return response(200, item);
+      return corsResponse(200, item);
     }
 
     if (method === "GET" && path === "/patients") {
@@ -103,7 +93,7 @@ exports.handler = async (event) => {
         TableName: TABLE_NAME,
       }).promise();
 
-      return response(200, {
+      return corsResponse(200, {
         count: data.Items.length,
         patients: data.Items,
       });
@@ -111,13 +101,13 @@ exports.handler = async (event) => {
 
     if (method === "POST" && path === "/reminder") {
       if (!groups.includes("caregiver")) {
-        return response(403, {
+        return corsResponse(403, {
           error: "Only caregivers can send reminders",
         });
       }
 
       if (!SNS_TOPIC_ARN) {
-        return response(500, { error: "SNS_TOPIC_ARN missing" });
+        return corsResponse(500, { error: "SNS_TOPIC_ARN missing" });
       }
 
       await sns.publish({
@@ -125,10 +115,10 @@ exports.handler = async (event) => {
         Message: `Reminder from NeuroSync for user ${user} 💊`,
       }).promise();
 
-      return response(200, { message: "Reminder sent 🚀" });
+      return corsResponse(200, { message: "Reminder sent 🚀" });
     }
 
-    return response(404, {
+    return corsResponse(404, {
       message: "Route not found",
       method,
       path,
@@ -136,20 +126,19 @@ exports.handler = async (event) => {
 
   } catch (err) {
     console.error("ERROR:", err);
-    return response(500, {
+    return corsResponse(500, {
       error: err.message,
     });
   }
 };
 
-function response(status, body) {
+function corsResponse(status, body) {
   return {
     statusCode: status,
     headers: {
-      "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers": "*",
-      "Access-Control-Allow-Methods": "*",
+      "Access-Control-Allow-Methods": "*"
     },
     body: JSON.stringify(body),
   };
