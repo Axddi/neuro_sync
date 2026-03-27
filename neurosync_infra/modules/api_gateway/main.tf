@@ -3,7 +3,7 @@ resource "aws_apigatewayv2_api" "api" {
   protocol_type = "HTTP"
   cors_configuration {
     allow_origins = ["*"]
-    allow_methods = ["*"]
+    allow_methods = ["GET", "POST", "OPTIONS"]
     allow_headers = ["*"]
   }
 }
@@ -39,7 +39,6 @@ resource "aws_apigatewayv2_route" "proxy" {
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
-
 resource "aws_apigatewayv2_stage" "dev" {
   api_id      = aws_apigatewayv2_api.api.id
   name        = "dev"
@@ -67,5 +66,11 @@ resource "aws_apigatewayv2_route" "signup_public" {
 
   target = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 
+  authorization_type = "NONE"
+}
+resource "aws_apigatewayv2_route" "options" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "OPTIONS /{proxy+}"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
   authorization_type = "NONE"
 }
