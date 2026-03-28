@@ -11,26 +11,18 @@ exports.handler = async (event) => {
     event?.requestContext?.http?.method ||
     event?.httpMethod ||
     "";
-
   if (method === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type,Authorization",
-        "Access-Control-Allow-Methods": "OPTIONS,GET,POST",
-      },
-      body: "",
-    };
+    return corsResponse(200, {});
   }
 
   try {
-    let path = event?.requestContext?.http?.path || "";
-    path = path.replace(/^\/[a-zA-Z0-9_-]+/, "");
+    let rawPath = event?.rawPath || event?.requestContext?.http?.path || "";
+    let path = rawPath.replace(/^\/dev/, "");
 
-    console.log("METHOD:", method, "PATH:", path);
+    console.log("RAW PATH:", rawPath);
+    console.log("NORMALIZED PATH:", path);
+
     const claims = event?.requestContext?.authorizer?.jwt?.claims || {};
-
     let groups = [];
     const rawGroups =
       claims["cognito:groups"] || claims["groups"] || [];
@@ -48,9 +40,10 @@ exports.handler = async (event) => {
       }
     }
 
-    console.log("NORMALIZED GROUPS:", groups);
+    console.log("GROUPS:", groups);
 
     const user = claims.sub || "anonymous";
+
     let body = {};
     if (event.body) {
       try {
@@ -58,6 +51,22 @@ exports.handler = async (event) => {
       } catch {
         return corsResponse(400, { error: "Invalid JSON body" });
       }
+    }
+
+    if (method === "POST" && path.endsWith("/auth/login")) {
+      const { email, password } = body;
+
+      if (!email || !password) {
+        return corsResponse(400, { error: "Email and password required" });
+      }
+
+      return corsResponse(200, {
+        token: "dummy-token",
+        user: {
+          email,
+          role: "caregiver",
+        },
+      });
     }
 
     if (method === "GET" && path === "/") {
@@ -101,14 +110,10 @@ exports.handler = async (event) => {
     }
 
     if (method === "POST" && path === "/reminder") {
-      if (!groups.some((g) => g === "caregiver")) {
+      if (!groups.includes("caregiver")) {
         return corsResponse(403, {
           error: "Only caregivers can send reminders",
         });
-      }
-
-      if (!SNS_TOPIC_ARN) {
-        return corsResponse(500, { error: "SNS_TOPIC_ARN missing" });
       }
 
       await sns.publish({
@@ -120,7 +125,7 @@ exports.handler = async (event) => {
     }
 
     if (method === "POST" && path === "/logs") {
-      if (!groups.some((g) => g === "caregiver")) {
+      if (!groups.includes("caregiver")) {
         return corsResponse(403, {
           error: "Only caregivers allowed",
           groups,

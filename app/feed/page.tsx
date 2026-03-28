@@ -142,6 +142,15 @@ export default function CareFeedPage() {
   const [filter, setFilter] = useState<string>("all");
   const { animationsEnabled } = useTheme();
   useEffect(() => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    window.location.href = "/login";
+    return;
+  }
+
+  setRole(getUserRole());
+
   const fetchLogs = async () => {
     const res = await api("/logs");
 
@@ -173,8 +182,6 @@ export default function CareFeedPage() {
   };
 
   fetchLogs();
-  const r = getUserRole();
-  setRole(r);
 }, []);
 
   const toggleLike = (id: string) => {

@@ -135,7 +135,7 @@ const handleSubmit = async () => {
     mood: selectedMood,
     tags: selectedTags,
     notes,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date(),
   };
 
   try {
@@ -175,6 +175,15 @@ const formatTime = (date: any) => {
   return `${Math.floor(hours / 24)}d ago`;
 };
 useEffect(() => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    window.location.href = "/login";
+    return;
+  }
+
+  setRole(getUserRole());
+
   const fetchLogs = async () => {
     const res = await api("/logs");
 
@@ -198,8 +207,6 @@ useEffect(() => {
   };
 
   fetchLogs();
-  const r = getUserRole();
-  setRole(r);
 }, []);
 
   return (

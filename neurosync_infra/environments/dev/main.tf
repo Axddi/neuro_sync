@@ -46,14 +46,13 @@ module "lambda" {
 module "api_gw" {
   source = "../../modules/api_gateway"
 
-  lambda_name       = module.lambda.lambda_name
   lambda_invoke_arn = module.lambda.lambda_invoke_arn
+  lambda_name       = module.lambda.lambda_name
 
   user_pool_id = module.cognito.user_pool_id
   client_id    = module.cognito.client_id
 }
 
-# EventBridge
 module "eventbridge" {
   source = "../../modules/eventbridge"
 

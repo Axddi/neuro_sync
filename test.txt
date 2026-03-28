@@ -1,0 +1,3 @@
+curl -X POST https://ox1nsotsmf.execute-api.ap-south-1.amazonaws.com/dev/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test","password":"123"}'
