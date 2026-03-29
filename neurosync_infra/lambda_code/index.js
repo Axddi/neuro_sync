@@ -53,42 +53,7 @@ exports.handler = async (event) => {
       }
     }
 
-    if (method === "POST" && path.endsWith("/auth/login")) {
-      const { email, password } = body;
-
-      if (!email || !password) {
-        return corsResponse(400, { error: "Email and password required" });
-      }
-
-return {
-  statusCode: 200,
-  headers: {
-    "Access-Control-Allow-Origin": "http://localhost:3000",
-    "Access-Control-Allow-Headers": "Content-Type,Authorization",
-    "Access-Control-Allow-Methods": "OPTIONS,GET,POST",
-    "Access-Control-Allow-Credentials": "true",
-    "Set-Cookie": `token=dummy-token; Path=/; HttpOnly; SameSite=Lax`,
-  },
-  body: JSON.stringify({
-    user: {
-      email,
-      role: "caregiver",
-    },
-  }),
-};
     }
-    if (method === "POST" && path.endsWith("/auth/signup")) {
-    const { email, password, role } = body;
-
-    if (!email || !password || !role) {
-      return corsResponse(400, { error: "email, password, role required" });
-    }
-    console.log("NEW USER:", { email, role });
-
-    return corsResponse(200, {
-      message: "Signup successful",
-    });
-}
 
     if (method === "GET" && path === "/") {
       return corsResponse(200, {
@@ -145,52 +110,45 @@ return {
       return corsResponse(200, { message: "Reminder sent 🚀" });
     }
 
-    if (method === "POST" && path === "/logs") {
-    //  if (!groups.includes("caregiver")) {
-      //  return corsResponse(403, {
-        //  error: "Only caregivers allowed",
-      //    groups,
-       // });
-      //}
+if (method === "POST" && path === "/logs") {
+if (!body.mood) {
+  return corsResponse(400, { error: "mood required" });
+}
 
-      if (!body.id || !body.mood) {
-        return corsResponse(400, { error: "id and mood required" });
-      }
+  const item = {
+    PK: `USER#${user}`,
+    SK: `LOG#${Date.now()}`,
+    type: body.type || "mood",
+    mood: body.mood,
+    notes: body.notes || "",
+    tags: body.tags || [],
+    createdAt: new Date().toISOString(),
+  };
 
-      const item = {
-        PK: `LOG#${body.id}`,
-        SK: "META",
-        type: body.type || "mood",
-        mood: body.mood,
-        notes: body.notes || "",
-        tags: body.tags || [],
-        createdAt: new Date().toISOString(),
-        createdBy: user,
-      };
+  await dynamo.put({
+    TableName: TABLE_NAME,
+    Item: item,
+  }).promise();
 
-      await dynamo.put({
-        TableName: TABLE_NAME,
-        Item: item,
-      }).promise();
+  return corsResponse(200, item);
+}
 
-      return corsResponse(200, item);
-    }
+if (method === "GET" && path === "/logs") {
+  const data = await dynamo.query({
+    TableName: TABLE_NAME,
+    KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
+    ExpressionAttributeValues: {
+      ":pk": `USER#${user}`,
+      ":sk": "LOG#",
+    },
+    ScanIndexForward: false,
+  }).promise();
 
-    if (method === "GET" && path === "/logs") {
-      const data = await dynamo.scan({
-        TableName: TABLE_NAME,
-        FilterExpression: "begins_with(PK, :pk) AND createdBy = :user",
-        ExpressionAttributeValues: {
-          ":pk": "LOG#",
-          ":user": user,
-        },
-      }).promise();
-
-      return corsResponse(200, {
-        count: data.Items.length,
-        logs: data.Items,
-      });
-    }
+  return corsResponse(200, {
+    count: data.Items.length,
+    logs: data.Items,
+  });
+}
 
     return corsResponse(404, {
       message: "Route not found",

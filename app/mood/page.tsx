@@ -138,15 +138,14 @@ const handleSubmit = async () => {
   };
 
   try {
-    await api("/logs", {
-      method: "POST",
-      body: JSON.stringify({
-        id: Date.now().toString(),
-        mood: selectedMood,    
-        notes,
-        tags: selectedTags,    
-      }),
-    });
+  await api("/logs", {
+    method: "POST",
+    body: JSON.stringify({
+      mood: selectedMood,
+      notes,
+      tags: selectedTags,
+    }),
+  });
 
     setLogs([newLog, ...logs]);
     setSelectedMood(null);
@@ -194,13 +193,13 @@ setRole(user?.role || null);
     const res = await api("/logs");
 
     if (res.logs) {
-      const mapped = res.logs.map((log: any) => ({
-        id: log.PK,
-        mood: log.mood,
-        tags: log.tags || [],
-        notes: log.notes,
-        timestamp: log.createdAt,
-      }));
+    const mapped = res.logs.map((log: any) => ({
+      id: log.SK, 
+      mood: log.mood,
+      tags: log.tags || [],
+      notes: log.notes,
+      timestamp: log.createdAt,
+    }));
 
       setLogs(
         mapped.sort(

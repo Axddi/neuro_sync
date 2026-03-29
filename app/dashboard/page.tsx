@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { getTokenFromUrl } from "@/lib/cognito";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/components/theme-provider";
 import { useRouter } from "next/navigation";
@@ -29,7 +30,6 @@ import {
 export default function SettingsPage() {
   const router = useRouter();
 
-  // ✅ ALL HOOKS FIRST (CRITICAL)
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [user, setUser] = useState<any>(null);
 
@@ -53,12 +53,16 @@ export default function SettingsPage() {
 
   // ✅ LOAD USER DATA
 useEffect(() => {
-  const userData = getUserFromToken();
+    const tokens = getTokenFromUrl();
 
-  if (userData) {
-    setUser(userData);
-  }
-}, []);
+    if (tokens?.idToken) {
+      localStorage.setItem("token", tokens.idToken);
+
+      // remove hash
+      window.history.replaceState({}, document.title, "/dashboard");
+    }
+  }, []);
+
   // ✅ SAFE LOADING STATE (NO HOOK BREAK)
   if (checkingAuth) {
     return null; // or loader

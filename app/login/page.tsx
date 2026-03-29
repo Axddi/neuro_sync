@@ -14,10 +14,9 @@ export default function LoginPage() {
   const domain = "neurosync-dev-auth-76108613";
   const clientId = "4qp727h14n606fb0thoikhb5oo";
 
-  const redirectUri = encodeURIComponent("http://localhost:3000/callback");
+ const redirectUri = encodeURIComponent("http://localhost:3000/dashboard");
 
-  const url = `https://${domain}.auth.ap-south-1.amazoncognito.com/login?client_id=${clientId}&response_type=code&scope=openid email&redirect_uri=${redirectUri}`;
-
+const url = `https://${domain}.auth.ap-south-1.amazoncognito.com/login?client_id=${clientId}&response_type=token&scope=openid email&redirect_uri=${redirectUri}`;
   window.location.href = url;
 };
 

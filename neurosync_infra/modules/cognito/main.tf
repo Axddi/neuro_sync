@@ -8,26 +8,19 @@ resource "aws_cognito_user_pool" "this" {
     required = true
     attribute_data_type = "String"
   }
+   lifecycle {
+    ignore_changes = [
+      schema 
+    ]
+   }
 }
 
 resource "aws_cognito_user_pool_client" "this" {
-  name         = "neurosync-dev-client"
+  name         = "neurosync-dev-client-v2"
   user_pool_id = aws_cognito_user_pool.this.id
-
-  explicit_auth_flows = [
-    "ALLOW_USER_PASSWORD_AUTH",
-    "ALLOW_REFRESH_TOKEN_AUTH",
-    "ALLOW_USER_SRP_AUTH"
-  ]
-
-  generate_secret = false
-
-  callback_urls = ["http://localhost:3000/"]
-  logout_urls   = ["http://localhost:3000/login"]
-
-  allowed_oauth_flows = ["code"]
-  allowed_oauth_scopes = ["email", "openid", "profile"]
-  allowed_oauth_flows_user_pool_client = true
+  lifecycle {
+    ignore_changes = all
+  }
 }
 resource "aws_cognito_user_group" "caregiver" {
   name         = "caregiver"
