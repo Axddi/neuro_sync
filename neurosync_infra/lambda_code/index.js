@@ -60,13 +60,22 @@ exports.handler = async (event) => {
         return corsResponse(400, { error: "Email and password required" });
       }
 
-      return corsResponse(200, {
-        token: "dummy-token",
-        user: {
-          email,
-          role: "caregiver",
-        },
-      });
+return {
+  statusCode: 200,
+  headers: {
+    "Access-Control-Allow-Origin": "http://localhost:3000",
+    "Access-Control-Allow-Headers": "Content-Type,Authorization",
+    "Access-Control-Allow-Methods": "OPTIONS,GET,POST",
+    "Access-Control-Allow-Credentials": "true",
+    "Set-Cookie": `token=dummy-token; Path=/; HttpOnly; SameSite=Lax`,
+  },
+  body: JSON.stringify({
+    user: {
+      email,
+      role: "caregiver",
+    },
+  }),
+};
     }
     if (method === "POST" && path.endsWith("/auth/signup")) {
     const { email, password, role } = body;
@@ -137,12 +146,12 @@ exports.handler = async (event) => {
     }
 
     if (method === "POST" && path === "/logs") {
-      if (!groups.includes("caregiver")) {
-        return corsResponse(403, {
-          error: "Only caregivers allowed",
-          groups,
-        });
-      }
+    //  if (!groups.includes("caregiver")) {
+      //  return corsResponse(403, {
+        //  error: "Only caregivers allowed",
+      //    groups,
+       // });
+      //}
 
       if (!body.id || !body.mood) {
         return corsResponse(400, { error: "id and mood required" });
@@ -201,7 +210,8 @@ function corsResponse(status, body) {
   return {
     statusCode: status,
     headers: {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": "http://localhost:3000",
+      "Access-Control-Allow-Credentials": "true",
       "Access-Control-Allow-Headers": "Content-Type,Authorization",
       "Access-Control-Allow-Methods": "OPTIONS,GET,POST",
     },

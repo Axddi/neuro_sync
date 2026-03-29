@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,19 +10,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = async () => {
-    setLoading(true);
-    setError("");
+  const handleLogin = () => {
+  const domain = "neurosync-dev-auth-76108613";
+  const clientId = "4qp727h14n606fb0thoikhb5oo";
 
-    try {
-      await login(email, password);
-      router.push("/");
-    } catch (err) {
-      setError("Invalid email or password");
-    }
+  const redirectUri = encodeURIComponent("http://localhost:3000/callback");
 
-    setLoading(false);
-  };
+  const url = `https://${domain}.auth.ap-south-1.amazoncognito.com/login?client_id=${clientId}&response_type=code&scope=openid email&redirect_uri=${redirectUri}`;
+
+  window.location.href = url;
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1f1f2e] to-[#2c2c3c] text-white">

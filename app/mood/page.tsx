@@ -5,7 +5,6 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getUserRole } from "@/lib/auth";
 import { Textarea } from "@/components/ui/textarea";
 import { useTheme } from "@/components/theme-provider";
 import { motion, AnimatePresence } from "framer-motion";
@@ -175,14 +174,21 @@ const formatTime = (date: any) => {
   return `${Math.floor(hours / 24)}d ago`;
 };
 useEffect(() => {
-  const token = localStorage.getItem("token");
+  if (typeof document !== "undefined") {
+  const hasToken = document.cookie.includes("token=");
 
-  if (!token) {
+  if (!hasToken) {
     window.location.href = "/login";
     return;
   }
+}
 
-  setRole(getUserRole());
+  const user =
+  typeof window !== "undefined"
+    ? JSON.parse(localStorage.getItem("user") || "null")
+    : null;
+
+setRole(user?.role || null);
 
   const fetchLogs = async () => {
     const res = await api("/logs");

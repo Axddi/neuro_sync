@@ -21,6 +21,13 @@ resource "aws_cognito_user_pool_client" "this" {
   ]
 
   generate_secret = false
+
+  callback_urls = ["http://localhost:3000/"]
+  logout_urls   = ["http://localhost:3000/login"]
+
+  allowed_oauth_flows = ["code"]
+  allowed_oauth_scopes = ["email", "openid", "profile"]
+  allowed_oauth_flows_user_pool_client = true
 }
 resource "aws_cognito_user_group" "caregiver" {
   name         = "caregiver"
@@ -36,4 +43,12 @@ resource "aws_cognito_user_in_group" "admin_caregiver" {
   user_pool_id = aws_cognito_user_pool.this.id
   username     = "admin" 
   group_name   = aws_cognito_user_group.caregiver.name
+}
+resource "aws_cognito_user_pool_domain" "this" {
+  domain       = "neurosync-dev-auth-${random_id.suffix.hex}"
+  user_pool_id = aws_cognito_user_pool.this.id
+}
+
+resource "random_id" "suffix" {
+  byte_length = 4
 }

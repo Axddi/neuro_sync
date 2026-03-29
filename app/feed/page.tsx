@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useEffect } from "react";
-import { getUserRole } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -142,14 +141,21 @@ export default function CareFeedPage() {
   const [filter, setFilter] = useState<string>("all");
   const { animationsEnabled } = useTheme();
   useEffect(() => {
-  const token = localStorage.getItem("token");
+if (typeof document !== "undefined") {
+  const hasToken = document.cookie.includes("token=");
 
-  if (!token) {
+  if (!hasToken) {
     window.location.href = "/login";
     return;
   }
+}
 
-  setRole(getUserRole());
+const user =
+  typeof window !== "undefined"
+    ? JSON.parse(localStorage.getItem("user") || "null")
+    : null;
+
+setRole(user?.role || null);
 
   const fetchLogs = async () => {
     const res = await api("/logs");

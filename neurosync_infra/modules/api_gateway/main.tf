@@ -2,12 +2,12 @@ resource "aws_apigatewayv2_api" "api" {
   name          = "neurosync-dev-api"
   protocol_type = "HTTP"
 
-  cors_configuration {
-    allow_origins     = ["*"]
-    allow_methods     = ["GET", "POST", "OPTIONS"]
-    allow_headers     = ["Content-Type", "Authorization"]
-    allow_credentials = false
-  }
+cors_configuration {
+  allow_origins     = ["http://localhost:3000"] 
+  allow_methods     = ["GET", "POST", "OPTIONS"]
+  allow_headers     = ["Content-Type", "Authorization"]
+  allow_credentials = true                   
+}
 }
 
 resource "aws_apigatewayv2_integration" "lambda_integration" {
