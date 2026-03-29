@@ -17,7 +17,7 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      router.push("/page");
+      router.push("/");
     } catch (err) {
       setError("Invalid email or password");
     }
@@ -53,10 +53,21 @@ export default function LoginPage() {
 
         <button
           onClick={handleLogin}
-          className="w-full bg-indigo-500 hover:bg-indigo-600 p-3 rounded-lg transition"
+          disabled={loading}
+          className="w-full bg-indigo-500 hover:bg-indigo-600 p-3 rounded-lg transition disabled:opacity-50"
         >
           {loading ? "Logging in..." : "Login"}
         </button>
+
+        <p className="text-sm mt-4 text-center text-muted-foreground">
+          Don’t have an account?{" "}
+          <span
+            onClick={() => router.push("/signup")}
+            className="text-indigo-400 cursor-pointer"
+          >
+            Sign up
+          </span>
+        </p>
       </div>
     </div>
   );

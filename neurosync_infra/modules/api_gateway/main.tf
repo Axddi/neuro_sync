@@ -38,6 +38,16 @@ resource "aws_apigatewayv2_route" "login_public" {
   target = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 
   authorization_type = "NONE"
+  authorizer_id = null
+}
+resource "aws_apigatewayv2_route" "signup" {
+  api_id    = aws_apigatewayv2_api.api.id
+  route_key = "POST /auth/signup"
+
+  target = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+
+  authorization_type = "NONE"
+  authorization_scopes = []
 }
 
 resource "aws_apigatewayv2_route" "options" {
@@ -55,8 +65,7 @@ resource "aws_apigatewayv2_route" "proxy" {
 
   target = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 
-  authorization_type = "JWT"
-  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+  authorization_type = "NONE"
 }
 
 resource "aws_apigatewayv2_stage" "dev" {

@@ -68,6 +68,18 @@ exports.handler = async (event) => {
         },
       });
     }
+    if (method === "POST" && path.endsWith("/auth/signup")) {
+    const { email, password, role } = body;
+
+    if (!email || !password || !role) {
+      return corsResponse(400, { error: "email, password, role required" });
+    }
+    console.log("NEW USER:", { email, role });
+
+    return corsResponse(200, {
+      message: "Signup successful",
+    });
+}
 
     if (method === "GET" && path === "/") {
       return corsResponse(200, {
