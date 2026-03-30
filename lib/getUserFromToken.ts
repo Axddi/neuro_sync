@@ -4,11 +4,13 @@ interface CognitoToken {
   email: string;
   sub: string;
   "cognito:username": string;
+  "cognito:groups"?: string[];
 }
 
 export function getUserFromToken() {
-  const token = localStorage.getItem("token");
+  if (typeof window === "undefined") return null;
 
+  const token = localStorage.getItem("token");
   if (!token) return null;
 
   try {
@@ -18,6 +20,7 @@ export function getUserFromToken() {
       email: decoded.email,
       id: decoded.sub,
       username: decoded["cognito:username"],
+      role: decoded["cognito:groups"]?.[0] || "user",
     };
   } catch (err) {
     console.error("Invalid token");

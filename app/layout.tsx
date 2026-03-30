@@ -1,17 +1,17 @@
-import React from "react"
+import React from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import AuthHandler from "./auth-handle";
 
-const _inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "NeuroSync - Cognitive Caregiver Platform",
   description:
     "A compassionate care management platform for caregivers of people with Alzheimer's, autism, and ADHD",
-  generator: "v0.app",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -41,13 +41,17 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="font-sans antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className={inter.className}>
+        <ThemeProvider>
+          <AuthHandler />
+          {children}
+        </ThemeProvider>
+
         <Analytics />
       </body>
     </html>

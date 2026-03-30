@@ -10,16 +10,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = () => {
-  const domain = "neurosync-dev-auth-76108613";
+const handleLogin = () => {
+  const domain = "https://neurosync-dev-auth-76108613.auth.ap-south-1.amazoncognito.com";
   const clientId = "4qp727h14n606fb0thoikhb5oo";
 
- const redirectUri = encodeURIComponent("http://localhost:3000/dashboard");
+  const redirectUri = encodeURIComponent("http://localhost:3000/dashboard");
 
-const url = `https://${domain}.auth.ap-south-1.amazoncognito.com/login?client_id=${clientId}&response_type=token&scope=openid email&redirect_uri=${redirectUri}`;
+  const url = `${domain}/login?client_id=${clientId}&response_type=token&scope=openid+email&redirect_uri=${redirectUri}`;
+
   window.location.href = url;
 };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1f1f2e] to-[#2c2c3c] text-white">
       <div className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl shadow-xl w-full max-w-md">

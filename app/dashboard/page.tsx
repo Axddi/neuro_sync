@@ -39,34 +39,35 @@ export default function SettingsPage() {
     animationsEnabled,
     toggleAnimations,
   } = useTheme();
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    const hash = window.location.hash;
 
-  // ✅ AUTH CHECK
-  useEffect(() => {
-    const token = localStorage.getItem("token");
+    if (hash.includes("id_token")) {
+      const params = new URLSearchParams(hash.substring(1));
+      const token = params.get("id_token");
 
-    if (!token) {
+      if (token) {
+        localStorage.setItem("token", token);
+        window.history.replaceState(null, "", "/dashboard");
+      }
+    }
+  }
+}, []);
+useEffect(() => {
+    const u = getUserFromToken();
+
+    if (!u) {
       router.push("/login");
     } else {
+      setUser(u);
+    }
       setCheckingAuth(false);
-    }
-  }, [router]);
 
-  // ✅ LOAD USER DATA
-useEffect(() => {
-    const tokens = getTokenFromUrl();
-
-    if (tokens?.idToken) {
-      localStorage.setItem("token", tokens.idToken);
-
-      // remove hash
-      window.history.replaceState({}, document.title, "/dashboard");
-    }
   }, []);
 
-  // ✅ SAFE LOADING STATE (NO HOOK BREAK)
-  if (checkingAuth) {
-    return null; // or loader
-  }
+if (checkingAuth) return null;
+if (!user) return null;
 
   return (
     <DashboardLayout>

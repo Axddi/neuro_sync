@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { getUserFromToken } from "@/lib/getUserFromToken";
 import { useTheme } from "@/components/theme-provider";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
@@ -127,36 +128,55 @@ export default function MoodLoggerPage() {
   };
 
 const handleSubmit = async () => {
-  if (!selectedMood) return;
-
-  const newLog = {
-    id: Date.now().toString(),
-    mood: selectedMood,
-    tags: selectedTags,
-    notes,
-    timestamp: new Date(),
-  };
-
   try {
-  await api("/logs", {
-    method: "POST",
-    body: JSON.stringify({
-      mood: selectedMood,
-      notes,
-      tags: selectedTags,
-    }),
-  });
+    const user = getUserFromToken();
 
-    setLogs([newLog, ...logs]);
+    if (!user) {
+      alert("User not logged in");
+      return;
+    }
+
+    if (!selectedMood) {
+      alert("Please select a mood");
+      return;
+    }
+
+    const payload = {
+      id: user.id,
+      mood: selectedMood,
+      tags: selectedTags || [],
+      notes: notes || "", 
+      createdAt: new Date().toISOString(),
+    };
+
+    console.log("SENDING PAYLOAD:", payload);
+
+await api("/logs", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(payload),
+});
+
+const newLog = {
+  id: payload.createdAt,
+  mood: payload.mood,
+  tags: payload.tags,
+  notes: payload.notes,
+  timestamp: payload.createdAt,
+  
+};
+    setShowSuccess(true);
     setSelectedMood(null);
     setSelectedTags([]);
     setNotes("");
-    setShowSuccess(true);
 
     setTimeout(() => setShowSuccess(false), 2000);
   } catch (err) {
     console.error("Failed to save:", err);
     alert("Failed to save ❌");
+  
   }
 };
 
@@ -173,13 +193,14 @@ const formatTime = (date: any) => {
   return `${Math.floor(hours / 24)}d ago`;
 };
 useEffect(() => {
-  if (typeof document !== "undefined") {
-  const hasToken = document.cookie.includes("token=");
+const token =
+  typeof window !== "undefined"
+    ? localStorage.getItem("token")
+    : null;
 
-  if (!hasToken) {
-    window.location.href = "/login";
-    return;
-  }
+if (!token) {
+  window.location.href = "/login";
+  return;
 }
 
   const user =
@@ -190,25 +211,18 @@ useEffect(() => {
 setRole(user?.role || null);
 
   const fetchLogs = async () => {
-    const res = await api("/logs");
+const res = await api("/logs");
+if (Array.isArray(res)) {
+  const mapped = res.map((log: any) => ({
+    id: log.SK,
+    mood: log.mood,
+    tags: log.tags || [],
+    notes: log.notes,
+    timestamp: log.createdAt,
+  }));
 
-    if (res.logs) {
-    const mapped = res.logs.map((log: any) => ({
-      id: log.SK, 
-      mood: log.mood,
-      tags: log.tags || [],
-      notes: log.notes,
-      timestamp: log.createdAt,
-    }));
-
-      setLogs(
-        mapped.sort(
-          (a: any, b: any) =>
-            new Date(b.timestamp).getTime() -
-            new Date(a.timestamp).getTime()
-        )
-      );
-    }
+  setLogs(mapped);
+}
   };
 
   fetchLogs();

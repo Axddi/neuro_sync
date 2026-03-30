@@ -45,5 +45,5 @@ export async function signup(
   const redirectUri = encodeURIComponent("http://localhost:3000/callback");
 
   window.location.href =
-    `${domain}/signup?client_id=${clientId}&response_type=code&scope=email+openid+phone&redirect_uri=${redirectUri}&state=${role}`;
+  `${domain}/signup?client_id=${clientId}&response_type=token&scope=openid+email&redirect_uri=${redirectUri}&state=${role}`;
 }
