@@ -159,20 +159,19 @@ await api("/logs", {
   body: JSON.stringify(payload),
 });
 
-const newLog = {
+const newLog: LogEntry = {
   id: payload.createdAt,
-  mood: payload.mood,
+  mood: payload.mood as MoodLevel,
   tags: payload.tags,
   notes: payload.notes,
-  timestamp: payload.createdAt,
-  
+  timestamp: new Date(payload.createdAt),
 };
-    setShowSuccess(true);
-    setSelectedMood(null);
-    setSelectedTags([]);
-    setNotes("");
 
-    setTimeout(() => setShowSuccess(false), 2000);
+setLogs((prev) => [newLog, ...prev]);
+setSelectedMood(null);
+setSelectedTags([]);
+setNotes("");
+setShowSuccess(true);
   } catch (err) {
     console.error("Failed to save:", err);
     alert("Failed to save ❌");
@@ -211,18 +210,18 @@ if (!token) {
 setRole(user?.role || null);
 
   const fetchLogs = async () => {
-const res = await api("/logs");
-if (Array.isArray(res)) {
-  const mapped = res.map((log: any) => ({
-    id: log.SK,
-    mood: log.mood,
-    tags: log.tags || [],
-    notes: log.notes,
-    timestamp: log.createdAt,
-  }));
+    const res = await api("/logs");
+    if (Array.isArray(res)) {
+      const mapped: LogEntry[] = res.map((log: any) => ({
+        id: log.SK,
+        mood: log.mood as MoodLevel,
+        tags: log.tags || [],
+        notes: log.notes,
+        timestamp: new Date(log.createdAt),
+      }));
 
-  setLogs(mapped);
-}
+      setLogs(mapped);
+    }
   };
 
   fetchLogs();
